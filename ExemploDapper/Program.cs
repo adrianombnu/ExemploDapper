@@ -3,6 +3,7 @@ using ExemploDapper.Models;
 using Microsoft.Extensions.Configuration;
 using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -28,25 +29,41 @@ namespace ExemploDapper
             Console.WriteLine("\td - Deletar");
             Console.Write("Sua opção (c,i,d,a) ? ");
 
-            switch (Console.ReadLine())
+            while (Console.ReadLine() != "exit")
             {
-                case "c":
-                    Consultar(_con);
-                    break;
+                Console.WriteLine("\tc - Consultar");
+                Console.WriteLine("\ti - Incluir");
+                Console.WriteLine("\ta - Atualizar");
+                Console.WriteLine("\td - Deletar");
+                Console.Write("Sua opção (c,i,d,a) ? ");
 
-                case "i":
-                    Incluir(_con);
-                    break;
-                    /*
-                    case "a":
-                        Atualizar(_con);
+                switch (Console.ReadLine())
+                {
+                    case "c":
+                        Consultar(_con);
                         break;
+
+                    case "i":
+                        Incluir(_con);
+                        break;
+
+                    case "a":
+                        Console.WriteLine("Informe o ID do cliente a ser atualizado:");
+                        var id = Console.ReadLine();
+
+                        Atualizar(_con, Guid.Parse(id));
+                        break;
+
                     case "d":
-                        Deletar(_con);
-                        break;*/
+                        Console.WriteLine("Informe o ID do cliente a ser removido:");
+                        var id = Console.ReadLine();
+
+                        Excluir(_con, Guid.Parse(id));
+                        break;
+                }
+               
             }
 
-            Console.ReadKey();
         }
 
         static void Consultar(string conexao)
@@ -87,12 +104,7 @@ namespace ExemploDapper
             {
                 await conn.OpenAsync();
 
-                var query = @"INSERT INTO APPACADEMY.clientes 
-                                (ClienteId, Nome, Idade, Email)
-                                VALUES (@ClienteId
-                                ,@Nome
-                                ,@Idade
-                                ,@Email)";
+                var query = @"INSERT INTO APPACADEMY.clientes (ClienteId, Nome, Idade, Email) VALUES (:ClienteId,:Nome,:Idade,:Email)";
 
                 try
                 {
@@ -110,78 +122,68 @@ namespace ExemploDapper
 
         }
 
-        /*
-         * 
-         * static async void Incluir(string conexao)
+        static async void Atualizar(string conexao, Guid id)
         {
-            using (var db = new SqlConnection(conexao))
+            Random rnd = new Random();
+
+            Cliente model = new Cliente();
+            model.ClienteId = id.ToString();
+            model.Nome = "teste" + rnd.Next(100);
+            model.Idade = 99;
+            model.Email = "email@teste.com";
+
+            using (var conn = new OracleConnection(conexao))
             {
-                Cliente model = new Cliente();
-                model.Nome = "teste";
-                model.Email = "email@teste.com";
-                model.Idade = 99;
-                model.Pais = "Terra";
+                await conn.OpenAsync();
+
+                var query = @"UPDATE APPACADEMY.clientes 
+                                 SET Nome = :Nome,
+                                     Idade = :Idade,
+                                     Email = :Email 
+                               WHERE ClienteId = :ClienteId";
+
                 try
                 {
-                    await db.OpenAsync();
-                    var query = @"Insert Into Clientes(Nome,Idade,Email,Pais) Values(@nome,@idade,@email,@pais)";
-                    await db.ExecuteAsync(query, model);
+                    await conn.ExecuteAsync(query, model);
 
-                    Console.WriteLine($"Cliente {model.Nome} incluido com sucesso");
+                    Console.WriteLine($"Cliente {model.Nome} atualizado com sucesso");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
+
                 }
+
             }
+
         }
 
-
-        static async void Atualizar(string conexao)
+        static async void Excluir(string conexao, Guid id)
         {
-            using (var db = new SqlConnection(conexao))
+            Random rnd = new Random();
+
+            using (var conn = new OracleConnection(conexao))
             {
-                Cliente model = new Cliente();
-                model.Nome = "teste alterado";
-                model.Email = "email@teste.com";
-                model.Idade = 88;
-                model.Pais = "Terra";
-                model.ClienteId = 2;
+                await conn.OpenAsync();
+
+                var query = @"DELETE APPACADEMY.clientes                                  
+                               WHERE ClienteId = :ClienteId";
+
                 try
                 {
-                    await db.OpenAsync();
-                    var query = @"Update Clientes Set Nome=@Nome, Idade=@Idade,Email=@Email,Pais=@Pais Where ClienteId=@ClienteId";
+                    await conn.ExecuteAsync(query, new { ClienteId = id.ToString()});
 
-                    await db.ExecuteAsync(query, model);
-
-                    Console.WriteLine($"Cliente {model.Nome} incluido com sucesso");
+                    Console.WriteLine($"Cliente removido com sucesso");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                }
-            }
-        }
 
-        static async void Deletar(string conexao)
-        {
-            int id = 2;
-            using (var db = new SqlConnection(conexao))
-            {
-                try
-                {
-                    await db.OpenAsync();
-                    var query = @"Delete from Clientes Where ClienteId=" + id;
-                    await db.ExecuteAsync(query, new { ClienteId = id });
+                }
 
-                    Console.WriteLine($"Cliente excluido com sucesso");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
             }
+
         }
-        */
+        
     }
 }
