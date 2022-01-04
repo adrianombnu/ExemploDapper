@@ -49,16 +49,16 @@ namespace ExemploDapper
 
                     case "a":
                         Console.WriteLine("Informe o ID do cliente a ser atualizado:");
-                        var id = Console.ReadLine();
+                        var idAtualizar = Console.ReadLine();
 
-                        Atualizar(_con, Guid.Parse(id));
+                        Atualizar(_con, Guid.Parse(idAtualizar));
                         break;
 
                     case "d":
                         Console.WriteLine("Informe o ID do cliente a ser removido:");
-                        var id = Console.ReadLine();
+                        var idExcluir = Console.ReadLine();
 
-                        Excluir(_con, Guid.Parse(id));
+                        Excluir(_con, Guid.Parse(idExcluir));
                         break;
                 }
                
@@ -85,8 +85,6 @@ namespace ExemploDapper
                     Console.WriteLine("Idade: " + cliente.Idade.ToString());
                     Console.WriteLine(new string('*', 20));
                 }
-
-                Console.ReadLine();
 
             }
 
