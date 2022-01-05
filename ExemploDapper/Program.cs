@@ -68,8 +68,9 @@ namespace ExemploDapper
 
         static void Consultar(string conexao)
         {
+            //não precisamos abrir conexão e nem se preocupar em usar using por que o dapper faz tudo
+
             var oracleConnection = new OracleConnection(conexao);
-            //oracleConnection.Open();
 
             var query = @"SELECT * from ""clientes""";
 
