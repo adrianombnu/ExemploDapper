@@ -61,7 +61,7 @@ namespace ExemploDapper
                         Excluir(_con, Guid.Parse(idExcluir));
                         break;
                 }
-               
+
             }
 
         }
@@ -69,28 +69,26 @@ namespace ExemploDapper
         static void Consultar(string conexao)
         {
             var oracleConnection = new OracleConnection(conexao);
-            oracleConnection.Open();
+            //oracleConnection.Open();
 
-            var query = "SELECT * from clientes";
+            var query = @"SELECT * from ""clientes""";
 
-            using (var conn = new OracleConnection(conexao))
+            var conn = new OracleConnection(conexao);
+
+            var result = conn.Query<Cliente>(query).ToList();
+
+            foreach (var cliente in result)
             {
-                var result = conn.Query<Cliente>(query).ToList();
-
-                foreach (var cliente in result)
-                {
-                    Console.WriteLine(new string('*', 20));
-                    Console.WriteLine("\nID: " + cliente.ClienteId.ToString());
-                    Console.WriteLine("Nome : " + cliente.Nome);
-                    Console.WriteLine("Idade: " + cliente.Idade.ToString());
-                    Console.WriteLine(new string('*', 20));
-                }
-
+                Console.WriteLine(new string('*', 20));
+                Console.WriteLine("\nID: " + cliente.ClienteId.ToString());
+                Console.WriteLine("Nome : " + cliente.Nome);
+                Console.WriteLine("Idade: " + cliente.Idade.ToString());
+                Console.WriteLine(new string('*', 20));
             }
 
         }
 
-        static async void Incluir(string conexao)
+        static void Incluir(string conexao)
         {
             Cliente model = new Cliente();
             model.ClienteId = Guid.NewGuid().ToString();
@@ -98,29 +96,25 @@ namespace ExemploDapper
             model.Idade = 99;
             model.Email = "email@teste.com";
 
-            using (var conn = new OracleConnection(conexao))
+            var conn = new OracleConnection(conexao);
+
+            var query = @"INSERT INTO APPACADEMY.clientes (ClienteId, Nome, Idade, Email) VALUES (:ClienteId,:Nome,:Idade,:Email)";
+
+            try
             {
-                await conn.OpenAsync();
+                conn.Execute(query, model);
 
-                var query = @"INSERT INTO APPACADEMY.clientes (ClienteId, Nome, Idade, Email) VALUES (:ClienteId,:Nome,:Idade,:Email)";
-
-                try
-                {
-                    await conn.ExecuteAsync(query, model);
-
-                    Console.WriteLine($"Cliente {model.Nome} incluido com sucesso");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-
-                }
+                Console.WriteLine($"Cliente {model.Nome} incluido com sucesso");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
 
             }
 
         }
 
-        static async void Atualizar(string conexao, Guid id)
+        static void Atualizar(string conexao, Guid id)
         {
             Random rnd = new Random();
 
@@ -130,58 +124,50 @@ namespace ExemploDapper
             model.Idade = 99;
             model.Email = "email@teste.com";
 
-            using (var conn = new OracleConnection(conexao))
-            {
-                await conn.OpenAsync();
+            var conn = new OracleConnection(conexao);
 
-                var query = @"UPDATE APPACADEMY.clientes 
+            var query = @"UPDATE APPACADEMY.clientes 
                                  SET Nome = :Nome,
                                      Idade = :Idade,
                                      Email = :Email 
                                WHERE ClienteId = :ClienteId";
 
-                try
-                {
-                    await conn.ExecuteAsync(query, model);
+            try
+            {
+                conn.Execute(query, model);
 
-                    Console.WriteLine($"Cliente {model.Nome} atualizado com sucesso");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-
-                }
+                Console.WriteLine($"Cliente {model.Nome} atualizado com sucesso");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
 
             }
 
         }
 
-        static async void Excluir(string conexao, Guid id)
+        static void Excluir(string conexao, Guid id)
         {
             Random rnd = new Random();
 
-            using (var conn = new OracleConnection(conexao))
-            {
-                await conn.OpenAsync();
+            var conn = new OracleConnection(conexao);
 
-                var query = @"DELETE APPACADEMY.clientes                                  
+            var query = @"DELETE APPACADEMY.clientes                                  
                                WHERE ClienteId = :ClienteId";
 
-                try
-                {
-                    await conn.ExecuteAsync(query, new { ClienteId = id.ToString()});
+            try
+            {
+                conn.Execute(query, new { ClienteId = id.ToString() });
 
-                    Console.WriteLine($"Cliente removido com sucesso");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-
-                }
+                Console.WriteLine($"Cliente removido com sucesso");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
 
             }
 
         }
-        
+
     }
 }
